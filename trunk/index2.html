@@ -70,6 +70,10 @@
         br: [148,176]
       }
       ////////////////Quad Generation (Not Config)////////
+
+//yay its a wrapper
+
+function generateQuad(){
       
       quad.left = Math.min(quad.tl[0],quad.bl[0]); // (quad.tl[0]+quad.bl[0])/2 //take average
       quad.right = Math.max(quad.tr[0],quad.br[0]); // (quad.tr[0]+quad.br[0])/2 //take average
@@ -80,12 +84,13 @@
 
       quad.height = quad.bottom - quad.top; // quad.br[1] - quad.tr[1]
       
-      quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width //rate of top change
-      quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width //rate of down change
+      quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width; //rate of top change
+      quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of down change
       
       transform = new Perspective();
-      transform.setdst([0,0],[160,0],[0,120],[160,120])
-      transform.setsrc(quad.tl, quad.tr, quad.bl, quad.br)
+      transform.setdst([0,0],[160,0],[0,120],[160,120]);
+      transform.setsrc(quad.tl, quad.tr, quad.bl, quad.br);
+}
       
       /////////////////Random Variables///////////////////
       
