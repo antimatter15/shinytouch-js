@@ -1,0 +1,96 @@
+<!doctype html>
+<head>
+<meta charset="UTf-8" />
+<title>ShinyTouch/JS</title>
+<script type="application/javascript" src="perspective.js" defer></script>
+<script type="application/javascript" src="polyfills.js"></script>
+<script type="application/javascript">
+function $(){return this.document.getElementById(arguments[0]);}
+var video, canvas;
+window.onload = function() {
+	video = $("input");
+	support();
+} 
+function support(){
+	var conditions = [
+		"getUserMedia" in navigator || "webkitGetUserMedia" in navigator,
+		"getContext" in document.createElement("canvas"),
+		(function(){
+			try {
+				return new Uint8ClampedArray([1]);
+			} catch(e) {
+				try {
+					return new CanvasPixelArray([1]);
+				} catch(e) {
+					return false;
+				}
+			}
+		}()),
+		document.querySelectorAll,
+		false
+	];
+		
+	var section = $("support").getElementsByTagName("ul")[0].getElementsByTagName("li");
+	Array.prototype.forEach.call(section,function(el, i){
+		el.style.color = (conditions[i]) ? "green" : "red";
+	});
+	
+}
+</script>
+<style type="text/css">
+body {
+	font-family: sans-serif;
+}
+#draw {
+	border: 1px solid black;
+}
+#input {
+	width:320px;
+	height:240px;
+}
+#draw {
+}
+section {
+	border: 1px solid #0080FF;
+	border-radius: 10px;
+	padding:10px;
+	margin: 10px;
+}
+</style>
+</head>
+
+<body>
+<section id="info">
+<header><h1>Hey Boi!</h1> (inside joke)</header>
+Lorum Ipusm Dolor Set Amit or something like that...
+</section>
+<section id="support">
+<a>Collapse</a>
+<h2>Required support:</h2>
+<ul>
+<li>getUserMedia API</li>
+<li>&lt;canvas&gt; support</li>
+<li>Uint8ClampedArray or CanvasPixelArray</li>
+<li>querySelectorAll</li>
+<li>false</li>
+</ul>
+</section>
+<section id="videoview">
+<!-- I'm using TABLES? lol -->
+<table>
+<tr><th>Output</th><th>Camera view</th><th>Draw view</th></tr>
+<tr>
+<td>
+<canvas id="output" width="0" height="0"></canvas>
+</td><td>
+<video autoplay id="input"></video>
+</td><td>
+<canvas id="draw" width="160" height="120"></canvas>
+</td>
+</table>
+</section>
+<section id="actions">
+Do stuff
+
+</section>
+</body>
