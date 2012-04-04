@@ -60,24 +60,25 @@ function toggleFullScreen(el, onfullscreen, onunfullscreen) {
 	}
 }
 
-function fireEvent(el, evtName, evt) {
+function fireEvent(el, evtName) {
 	if (document.createEventObject) {
-		evt = evt || document.createEventObject();
+		var evt = document.createEventObject();
 		return el.fireEvent("on" + evtName, evt);
 	} else {
-		evt = evt || document.createEvent("Events");
+		var evt = document.createEvent("Events");
 		evt.initEvent(evtName, true, true);
 		return !el.dispatchEvent(evt);
 	}
 }
 document.addEventListener("mozfullscreenchange", function(e) {
-	fireEvent(document,"fullscreenchange",e);
+	fireEvent(document,"fullscreenchange");
 },false);
 document.addEventListener("webkitfullscreenchange", function(e) {
-	fureEvent(document,"fullscreenchange",e);
+	fireEvent(document,"fullscreenchange");
 },false);
 
 /* fake Uint8ClampedArray for browsers that support CanvasPixelArray */
+
 if (!window.Uint8ClampedArray && Uint8Array &&
     (function(){
     	try { return document.createElement("canvas").getContext("2d").getImageData; }

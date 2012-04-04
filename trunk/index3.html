@@ -2,14 +2,17 @@
 <head>
 <meta charset="UTf-8" />
 <title>ShinyTouch/JS</title>
-<script type="text/javascript" src="perspective.js" defer></script>
-<script type="text/javascript" src="polyfills.js"></script>
+<script src="perspective.js" async></script>
+<script src="polyfills.js"></script>
+<script src="calibration_manual.js"></script>
 <script type="text/javascript">
 
 function $(){return this.document.getElementById(arguments[0]);}
-var video, canvas;
+var video, output, draw;
 window.onload = function() {
 	video = $("input");
+	output = $("output");
+	draw = $("draw");
 	support();
 } 
 function support(){
@@ -25,7 +28,7 @@ function support(){
 			document.webkitCancelFullScreen ||
 			document.webkitExitFullscreen
 		)
-	], opt = [0,0,0,0,1];
+	], opt = [0,0,0,1];
 		
 	var section = $("support").getElementsByTagName("li");
 	var supported = true;
@@ -50,15 +53,33 @@ function support(){
 		$("support-status").style.color = "red";
 	}
 }
+//function createBlob
+function init() {
+	document.getElementsByClassName('cover')[0].style.display = 'none';
+	
+	if (navigator.getUserMedia) {
+		navigator.getUserMedia("video",function(stream) {
+			console.log(stream);
+			video.src = stream;
+		},function(err) { console.error(err); });
+	} else if (navigator.webkitGetUserMedia) {
+		navigator.webkitGetUserMedia("video",function(stream) {
+			console.log(stream);
+			var bloburl = (window.URL || window.webkitURL).createObjectURL(stream);
+			console.log(bloburl);
+			video.src = bloburl;
+		},function(err) { throw err; });
+	}
+}
+
+function calibrate(algorithm) {
+	var window = window.open("calibrate3.html","calibrate","toolbar=no");
+}
 </script>
 <style>
-html {
-	margin:0px;
-	padding:0px;
-}
 body {
 	font-family: sans-serif;
-	margin:0px;
+	/*margin:0px;*/
 }
 #draw {
 	border: 1px solid black;
@@ -84,10 +105,12 @@ body {
 .cover {
 	text-align: center;
 	position:absolute;
+	left:0px;
+	top:0px;
 	width:100%;
 	height:100%;
 	z-index:9;
-	background-color:rgba(200,200,200,0.7);
+	background-color:rgba(200,200,200,0.8);
 }
 </style>
 </head>
@@ -106,36 +129,49 @@ Hi there! This is a non-working in-development prototype of
 <li>querySelector</li>
 <li>Fullscreen mode (optional)</li>
 </ul>
-<div id="support-status">Please waits...</div>
+<span id="support-status">Please waits...</span>
+<button value="Close" onclick="init()">Close</button>
 <p>
-At the time of writing, there are only a couple of places where the getUserMedia API is available, ordered by practicability:
+At the time of writing, there are only a couple of places where the getUserMedia API is available:
+<br />
+<ul>
+<li>Tested:
 <ul>
 <li>Google Chrome 18+ via the <a href="http://www.webrtc.org/running-the-demos" target="_blank">MediaStream flag</a></li>
+<li>A <a href="http://dev.opera.com/articles/view/labs-more-fun-using-the-web-with-getusermedia-and-native-pages/" target="_blank">special Opera Labs build</a></li>
+</ul>
+</li>
+<li>Other:
+<ul>
 <li>Microsoft's <a href="http://html5labs.interoperabilitybridges.com/prototypes/media-capture-api-(2nd-updated)/media-capture-api-(2nd-update)/info" target="_blank">
     prototype implementation</a></li>
-<li>A <a href="http://dev.opera.com/articles/view/labs-more-fun-using-the-web-with-getusermedia-and-native-pages/" target="_blank">special Opera Labs build</a></li>
 <li>A modified <a href="https://labs.ericsson.com/apis/web-real-time-communication/" target="_blank">WebKit build</a> from Ericsson Labs</li>
+</ul>
+</li>
 </ul>
 See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> for a list of stable browsers that support it.
 </p>
 </section>
 </div>
-<section id="videoview">
+<section id="container">
 <!-- I'm using TABLES? lol -->
-<table>
-<tr><th>Output</th><th>Camera view</th><th>Draw view</th></tr>
+<table style="border-width:1px;border-spacing:0px">
+<tr><th>Camera view</th><th>Output</th><th>Draw view</th></tr>
 <tr>
 <td>
-<canvas id="output" width="0" height="0"></canvas>
-</td><td>
 <video autoplay id="input"></video>
+</td><td>
+<canvas id="output" width="320" height="240"></canvas>
 </td><td>
 <canvas id="draw" width="160" height="120"></canvas>
 </td>
 </table>
-</section>
-<section id="actions">
-Do stuff
+
+<select id="calibration-type">
+<option value="manual">Manual</option>
+<option value="idk">idk</option>
+</select>
+<button onclick="calibrate($('calibration-type').value)">Begin calibration</button>
 
 </section>
 </body>
