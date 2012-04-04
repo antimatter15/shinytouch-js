@@ -6,6 +6,9 @@
 <script src="polyfills.js"></script>
 <script src="calibration_manual.js"></script>
 <script type="text/javascript">
+if (typeof calibration_algorithms=="undefined") {
+	var calibration_algorithms = [];
+}
 
 function $(){return this.document.getElementById(arguments[0]);}
 var video, output, draw;
@@ -18,13 +21,14 @@ window.onload = function() {
 function support(){
 	var conditions = [
 
-		navigator.getUserMedia || navigator.webkitGetUserMedia,
+		navigator.getUserMedia, //shimmed
 		window.Uint8ClampedArray, //support for getImageData :)
 		document.querySelector,
 		(
 			document.exitFullscreen ||
 			document.cancelFullScreen || 
 			document.mozCancelFullScreen || 
+			document.webkitCancelFullscreen ||
 			document.webkitCancelFullScreen ||
 			document.webkitExitFullscreen
 		)
@@ -57,23 +61,22 @@ function support(){
 function init() {
 	document.getElementsByClassName('cover')[0].style.display = 'none';
 	
-	if (navigator.getUserMedia) {
-		navigator.getUserMedia("video",function(stream) {
-			console.log(stream);
-			video.src = stream;
-		},function(err) { console.error(err); });
-	} else if (navigator.webkitGetUserMedia) {
-		navigator.webkitGetUserMedia("video",function(stream) {
-			console.log(stream);
-			var bloburl = (window.URL || window.webkitURL).createObjectURL(stream);
-			console.log(bloburl);
-			video.src = bloburl;
-		},function(err) { throw err; });
-	}
+	getUserMedia({video:true},function(stream){
+		console.log(stream);
+		var bloburl = window.URL.createObjectURL(stream);
+		console.log(bloburl);
+		window.stream = stream;
+		video.src = bloburl;
+	},function(e){
+		alert("Error: "+e.toString());
+	});
 }
 
 function calibrate(algorithm) {
-	var window = window.open("calibrate3.html","calibrate","toolbar=no");
+	var win = window.open("calibrate3.html","calibrate","toolbar=no");
+	win.onload = function() {
+		calibration_algorithms[algorithm](win);
+	}
 }
 </script>
 <style>
@@ -95,7 +98,7 @@ body {
 	position:relative;
 	background-color:white;
 	z-index:10;
-	border-radius:10px;
+	border-radius:20px;
 	border:10px solid #BBB;
 	margin:30px auto;
 	width:30%;
@@ -122,7 +125,7 @@ body {
 Hi there! This is a non-working in-development prototype of
 <a href="shinytouch-js.googlecode.com" target="_blank">ShinyTouch/JS</a>.
 
-<h2>Required support:</h2>
+<h2>Required stuff:</h2>
 <ul id="support">
 <li>getUserMedia API</li>
 <li>&lt;canvas&gt; getImageData</li> <!-- polyfilled Uint8ClampedArray -->

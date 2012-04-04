@@ -1,130 +1,23 @@
-/* requestAnimationFrame polyfill */
-(function() {
-    var lastTime = 0;
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = 
-          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-    }
- 
-    if (!window.requestAnimationFrame)
-        window.requestAnimationFrame = function(callback, element) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
-              timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-        };
- 
-    if (!window.cancelAnimationFrame)
-        window.cancelAnimationFrame = function(id) {
-            clearTimeout(id);
-        };
-}());
+/* requestAnimationFrame polyfill
+ * by Eric Moller
+ * http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+ */
+(function(){var a=0,b=["ms","moz","webkit","o"];for(var c=0;c<b.length&&!window.requestAnimationFrame;++c)window.requestAnimationFrame=window[b[c]+"RequestAnimationFrame"],window.cancelRequestAnimationFrame=window[b[c]+"CancelRequestAnimationFrame"];window.requestAnimationFrame||(window.requestAnimationFrame=function(b,c){var d=(new Date).getTime(),e=Math.max(0,16-(d-a)),f=window.setTimeout(function(){b(d+e)},e);return a=d+e,f}),window.cancelAnimationFrame||(window.cancelAnimationFrame=function(a){clearTimeout(a)})})()
 
-/* fullscreen api shim, from MDN and modified by me, yes it's messier than it should be */
-function toggleFullScreen(el, onfullscreen, onunfullscreen) {
-	if ((!window.fullScreen && !document.mozFullScreen && !document.webkitIsFullScreen) ||
-	    (document.fullscreenElement && document.fullscreenElement === null) ||
-	    (document.fullScreenElement && document.fullScreenElement === null)) {
-		
-		el = (el instanceof Element) ? el : document.documentElement;
-		
-		if (el.requestFullscreen) {
-			el.requestFullscreen();
-		} else if (el.requestFullScreen) {
-			el.requestFullScreen();
-		} else if (el.mozRequestFullScreen) {
-			el.mozRequestFullScreen();
-		} else if (el.webkitRequestFullScreen) {
-			el.webkitRequestFullScreen();
-		} else if (el.wekbitEnterFullscreen) {
-			el.webkitEnterFullscreen();
-		} else {
-			throw new Error("No fullscreen support!");
-		}
-	} else {
-		if (document.exitFullscreen) {
-			document.exitFullscreen();
-		} else if (document.cancelFullScreen) {
-			document.cancelFullScreen();
-		} else if (document.mozCancelFullScreen) {
-			document.mozCancelFullScreen();
-		} else if (document.webkitCancelFullScreen) {
-			document.webkitCancelFullScreen();
-		} else if (document.webkitExitFullscreen) {
-			document.webkitExitFullscreen();
-		}
-	}
-}
+/* fullscreen api something
+ * by me
+ * https://gist.github.com/2302950
+ */
+function toggleFullScreen(a){!window.fullScreen&&!document.mozFullScreen&&!document.webkitIsFullScreen||document.fullscreenElement&&document.fullscreenElement===null||document.fullScreenElement&&document.fullScreenElement===null?(a=a instanceof Element?a:document.documentElement,["requestFullscreen","requestFullScreen","mozRequestFullScreen","webkitRequestFullscreen","webkitRequestFullScreen","webkitEnterFullscreen"].forEach(function(b){a[b]&&a[b]()})):["exitFullscreen","cancelFullScreen","mozCancelFullScreen","webkitCanvelFullscreen","webkitCancelFullScreen","webkitExitFullscreen"].forEach(function(a){document[a]&&document[a]()})}function fireEvent(a,b){if(document.createEventObject){var c=document.createEventObject();return a.fireEvent("on"+b,c)}var c=document.createEvent("Events");return c.initEvent(b,!0,!0),!a.dispatchEvent(c)}document.addEventListener("mozfullscreenchange",function(a){fireEvent(document,"fullscreenchange")},!1),document.addEventListener("webkitfullscreenchange",function(a){fireEvent(document,"fullscreenchange")},!1)
 
-function fireEvent(el, evtName) {
-	if (document.createEventObject) {
-		var evt = document.createEventObject();
-		return el.fireEvent("on" + evtName, evt);
-	} else {
-		var evt = document.createEvent("Events");
-		evt.initEvent(evtName, true, true);
-		return !el.dispatchEvent(evt);
-	}
-}
-document.addEventListener("mozfullscreenchange", function(e) {
-	fireEvent(document,"fullscreenchange");
-},false);
-document.addEventListener("webkitfullscreenchange", function(e) {
-	fireEvent(document,"fullscreenchange");
-},false);
+/* fake Uint8ClampedArray for browsers that support CanvasPixelArray
+ * by me
+ * https://gist.github.com/2295355
+ */
+!window.Uint8ClampedArray&&Uint8Array&&function(){try{return document.createElement("canvas").getContext("2d").getImageData}catch(a){return!1}}()&&(window.Uint8ClampedArray=function(a,b,c){if(this instanceof Uint8ClampedArray){var d=0;if(a.length)d=a.length;else{if(a.constructor==ArrayBuffer)return new Uint8ClampedArray(new Uint8Array(a,b,c));d=Number(a),a=null}if(d!=Math.abs(d)<<0)throw new RangeError;d=Math.ceil(d/4)*4;var e=document.createElement("canvas");e.width=d/4,e.height=1;var f=e.getContext("2d").getImageData(0,0,d/4,1).data;if(a)for(var g=0;g<a.length;g++)f[g]=a[g];return Object.defineProperty?Object.defineProperty(f,"buffer",{get:function(){return(new Uint8Array(this)).buffer}}):Object.prototype.__defineGetter__&&f.__defineGetter__("buffer",function(){return(new Uint8Array(this)).buffer}),f}throw new TypeError("DOM object constructor cannot be called as a function.")})
 
-/* fake Uint8ClampedArray for browsers that support CanvasPixelArray */
-
-if (!window.Uint8ClampedArray && Uint8Array &&
-    (function(){
-    	try { return document.createElement("canvas").getContext("2d").getImageData; }
-    	catch(e) { return false; } 
-    }())) {
-window.Uint8ClampedArray = function(input,arg1,arg2) {
-	if (!(this instanceof Uint8ClampedArray)) {
-		throw new TypeError("DOM object constructor cannot be called as a function.");
-	}
-	var len = 0;
-	if (input.length) { //an array, yay
-		len = input.length;
-	} else if (input.constructor == ArrayBuffer) {
-		return new Uint8ClampedArray(new Uint8Array(input,arg1,arg2));
-	} else {
-		len = Number(input);
-		input = null;
-	}
-	
-	if (len != Math.abs(len) << 0) {
-		throw new RangeError();
-	}
-	len = Math.ceil(len / 4) * 4;
-	
-	var canvas = document.createElement("canvas");
-	canvas.width = len / 4;
-	canvas.height = 1;
-	
-	var array = canvas.getContext("2d").getImageData(0,0,len/4,1).data;
-	
-	if (input) {
-		for (var i=0;i<input.length;i++) {
-			array[i] = input[i];
-		}
-	}
-	if (Object.defineProperty) {
-		Object.defineProperty(array,"buffer",{
-			get: function() {
-				return new Uint8Array(this).buffer;
-			}
-		});
-	} else if (Object.prototype.__defineGetter__) {
-		array.__defineGetter__("buffer",function() {
-			return new Uint8Array(this).buffer;
-		});
-	}
-	return array;
-}
-}
+/* gUM shield!
+ * by me, sort of, see
+ * https://gist.github.com/f9986533817575de62d8
+ */
+function getUserMedia(a,b,c){navigator.getUserMedia||c(new Error("getUserMedia not supported"));try{navigator.getUserMedia(a,b,c)}catch(d){var e=[];for(var f in a)a[f]==1&&e.push(f);e=e.join(",");try{navigator.getUserMedia(e,b,c)}catch(d){c(new Error("getUserMedia not supported"))}}}window.URL||(window.URL=window.webkitURL||window.msURL||window.oURL),navigator.getUserMedia||(navigator.getUserMedia=navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia)
