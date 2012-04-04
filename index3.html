@@ -1,10 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <head>
 <meta charset="UTf-8" />
 <title>ShinyTouch/JS</title>
-<script type="application/javascript" src="perspective.js" defer></script>
-<script type="application/javascript" src="polyfills.js"></script>
-<script type="application/javascript">
+<script type="text/javascript" src="perspective.js" defer></script>
+<script type="text/javascript" src="polyfills.js"></script>
+<script type="text/javascript">
+
 function $(){return this.document.getElementById(arguments[0]);}
 var video, canvas;
 window.onload = function() {
@@ -13,33 +14,51 @@ window.onload = function() {
 } 
 function support(){
 	var conditions = [
-		"getUserMedia" in navigator || "webkitGetUserMedia" in navigator,
-		"getContext" in document.createElement("canvas"),
-		(function(){
-			try {
-				return new Uint8ClampedArray([1]);
-			} catch(e) {
-				try {
-					return new CanvasPixelArray([1]);
-				} catch(e) {
-					return false;
-				}
-			}
-		}()),
-		document.querySelectorAll,
-		false
-	];
+
+		navigator.getUserMedia || navigator.webkitGetUserMedia,
+		window.Uint8ClampedArray, //support for getImageData :)
+		document.querySelector,
+		(
+			document.exitFullscreen ||
+			document.cancelFullScreen || 
+			document.mozCancelFullScreen || 
+			document.webkitCancelFullScreen ||
+			document.webkitExitFullscreen
+		)
+	], opt = [0,0,0,0,1];
 		
-	var section = $("support").getElementsByTagName("ul")[0].getElementsByTagName("li");
+	var section = $("support").getElementsByTagName("li");
+	var supported = true;
 	Array.prototype.forEach.call(section,function(el, i){
-		el.style.color = (conditions[i]) ? "green" : "red";
+		if (conditions[i]) {
+			el.style.color = "green";
+		} else {
+			if (!opt[i]) {
+				el.style.color = "red";
+				supported = false;
+			}
+			else {
+				el.style.color = "#FF8000";
+			}
+		}
 	});
-	
+	if (supported) {
+		$("support-status").textContent = "\u2713 Your browser is supported!";
+		$("support-status").style.color = "green";
+	} else {
+		$("support-status").textContent = "\u2717 Your browser is not supported!";
+		$("support-status").style.color = "red";
+	}
 }
 </script>
-<style type="text/css">
+<style>
+html {
+	margin:0px;
+	padding:0px;
+}
 body {
 	font-family: sans-serif;
+	margin:0px;
 }
 #draw {
 	border: 1px solid black;
@@ -50,31 +69,57 @@ body {
 }
 #draw {
 }
-section {
-	border: 1px solid #0080FF;
-	border-radius: 10px;
+#info {
+	display:inline-block;
+	position:relative;
+	background-color:white;
+	z-index:10;
+	border-radius:10px;
+	border:10px solid #BBB;
+	margin:30px auto;
+	width:30%;
 	padding:10px;
-	margin: 10px;
+	text-align:left;
+}
+.cover {
+	text-align: center;
+	position:absolute;
+	width:100%;
+	height:100%;
+	z-index:9;
+	background-color:rgba(200,200,200,0.7);
 }
 </style>
 </head>
 
 <body>
+<div class="cover">
 <section id="info">
-<header><h1>Hey Boi!</h1> (inside joke)</header>
-Lorum Ipusm Dolor Set Amit or something like that...
-</section>
-<section id="support">
-<a>Collapse</a>
+<header><h1>ShinyTouch/JS</h1></header>
+Hi there! This is a non-working in-development prototype of
+<a href="shinytouch-js.googlecode.com" target="_blank">ShinyTouch/JS</a>.
+
 <h2>Required support:</h2>
-<ul>
+<ul id="support">
 <li>getUserMedia API</li>
-<li>&lt;canvas&gt; support</li>
-<li>Uint8ClampedArray or CanvasPixelArray</li>
-<li>querySelectorAll</li>
-<li>false</li>
+<li>&lt;canvas&gt; getImageData</li> <!-- polyfilled Uint8ClampedArray -->
+<li>querySelector</li>
+<li>Fullscreen mode (optional)</li>
 </ul>
+<div id="support-status">Please waits...</div>
+<p>
+At the time of writing, there are only a couple of places where the getUserMedia API is available, ordered by practicability:
+<ul>
+<li>Google Chrome 18+ via the <a href="http://www.webrtc.org/running-the-demos" target="_blank">MediaStream flag</a></li>
+<li>Microsoft's <a href="http://html5labs.interoperabilitybridges.com/prototypes/media-capture-api-(2nd-updated)/media-capture-api-(2nd-update)/info" target="_blank">
+    prototype implementation</a></li>
+<li>A <a href="http://dev.opera.com/articles/view/labs-more-fun-using-the-web-with-getusermedia-and-native-pages/" target="_blank">special Opera Labs build</a></li>
+<li>A modified <a href="https://labs.ericsson.com/apis/web-real-time-communication/" target="_blank">WebKit build</a> from Ericsson Labs</li>
+</ul>
+See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> for a list of stable browsers that support it.
+</p>
 </section>
+</div>
 <section id="videoview">
 <!-- I'm using TABLES? lol -->
 <table>
