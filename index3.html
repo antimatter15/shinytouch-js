@@ -5,10 +5,10 @@
 <script src="perspective.js" async></script>
 <script src="polyfills.js"></script>
 <script src="calibration_manual.js"></script>
+<script src="calibration_idk.js"></script>
 <script type="text/javascript">
-if (typeof calibration_algorithms=="undefined") {
-	var calibration_algorithms = [];
-}
+calibration_algorithms || (calibration_algorithms = []);
+update_sequences || (update_sequences = []);
 
 function $(){return this.document.getElementById(arguments[0]);}
 var video, output, draw;
@@ -16,6 +16,9 @@ window.onload = function() {
 	video = $("input");
 	output = $("output");
 	draw = $("draw");
+	
+	output.getContext("2d").strokeStyle="#0ff";
+	
 	support();
 } 
 function support(){
@@ -67,11 +70,64 @@ function init() {
 		console.log(bloburl);
 		window.stream = stream;
 		video.src = bloburl;
+		
+		update();
 	},function(e){
-		alert("Error: "+e.toString());
+		alert("Error: "+e.name+" "+e.message);
+		console.error(e);
 	});
 }
-
+function update() {
+	var ctx = output.getContext("2d"), i;
+	ctx.drawImage(video,0,0,320,240);
+	
+	var corners = ["tl", "tr", "br", "bl"];
+	corners.forEach(function(el,i) {
+		var curel = quad[el];
+		if (curel) {
+			ctx.strokeRect(curel[0]-5,curel[1]-5,10,10);
+			var nextel = quad[ corners[ (i+1)%4 ] ];
+			if (nextel) {
+				ctx.beginPath();
+				ctx.moveTo(curel[0],curel[1]);
+				ctx.lineTo(nextel[0],nextel[1]);
+				ctx.stroke();
+				ctx.closePath();
+			}
+		}
+	});
+	
+	for (i=0;i<update_sequences.length;++i) {
+		update_sequences[i]();
+	}
+	
+	window.requestAnimationFrame(update);
+}
+var quad = {
+	tl: null,
+	tr: null,
+	br: null,
+	bl: null,
+	
+	left:null,
+	right:null,
+	top:null,
+	buttom:null,
+	toprate:null,
+	bottomrate:null
+}
+function calculateQuad() {
+    quad.left = Math.min(quad.tl[0],quad.bl[0]);
+    quad.right = Math.max(quad.tr[0],quad.br[0]);
+    quad.top = Math.min(quad.tl[1],quad.tr[1]);
+    quad.bottom = Math.max(quad.bl[1],quad.br[1]);
+	
+	quad.width = quad.right-quad.left;
+	quad.height = quad.bottom - quad.top;
+    
+    quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width;    //rate of top change
+    quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of down change
+}
 function calibrate(algorithm) {
 	var win = window.open("calibrate3.html","calibrate","toolbar=no");
 	win.onload = function() {
@@ -154,6 +210,9 @@ At the time of writing, there are only a couple of places where the getUserMedia
 </ul>
 See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> for a list of stable browsers that support it.
 </p>
+<p>
+<b>If you suffer from epilepsy or have experienced seizures, please be aware that the automatic calibration process
+   may involve quickly flashing colors on the entire monitor screen.</b></p>
 </section>
 </div>
 <section id="container">
