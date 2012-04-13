@@ -19,6 +19,18 @@ window.onload = function() {
 	
 	output.getContext("2d").strokeStyle="#0ff";
 	
+	
+	document.getElementsByClassName("cover")[0].addEventListener("click",function(e) {
+		init();
+	}, false);
+	$("info").addEventListener("click",function(e) {
+		// ...both?
+		if (e.stopPropagation) e.stopPropagation();
+		if (e.preventDefault) e.preventDefault();
+		
+		return false;
+	}, true);
+		
 	support();
 } 
 function support(){
@@ -80,6 +92,7 @@ function init() {
 function update() {
 	var ctx = output.getContext("2d"), i;
 	ctx.drawImage(video,0,0,320,240);
+	ctx.beginPath();
 	
 	var corners = ["tl", "tr", "br", "bl"];
 	corners.forEach(function(el,i) {
@@ -88,18 +101,15 @@ function update() {
 			ctx.strokeRect(curel[0]-5,curel[1]-5,10,10);
 			var nextel = quad[ corners[ (i+1)%4 ] ];
 			if (nextel) {
-				ctx.beginPath();
 				ctx.moveTo(curel[0],curel[1]);
 				ctx.lineTo(nextel[0],nextel[1]);
 				ctx.stroke();
-				ctx.closePath();
 			}
 		}
 	});
+	ctx.closePath();
 	
-	for (i=0;i<update_sequences.length;++i) {
-		update_sequences[i]();
-	}
+	update_sequences.forEach(function(el){ el(); });
 	
 	window.requestAnimationFrame(update);
 }
@@ -115,6 +125,11 @@ var quad = {
 	buttom:null,
 	toprate:null,
 	bottomrate:null
+};
+var calibration_options = {
+	screen_width: null,
+	screen_height: null,
+	current_algorithm : null
 }
 function calculateQuad() {
     quad.left = Math.min(quad.tl[0],quad.bl[0]);
@@ -133,6 +148,8 @@ function calibrate(algorithm) {
 	win.onload = function() {
 		calibration_algorithms[algorithm](win);
 	}
+	// redundant but owell
+	calibration_options.current_algorithm = algorithm;
 }
 </script>
 <style>
@@ -160,6 +177,7 @@ body {
 	width:30%;
 	padding:10px;
 	text-align:left;
+	cursor:auto;
 }
 .cover {
 	text-align: center;
@@ -170,6 +188,7 @@ body {
 	height:100%;
 	z-index:9;
 	background-color:rgba(200,200,200,0.8);
+	cursor:pointer;
 }
 </style>
 </head>
@@ -197,7 +216,7 @@ At the time of writing, there are only a couple of places where the getUserMedia
 <li>Tested:
 <ul>
 <li>Google Chrome 18+ via the <a href="http://www.webrtc.org/running-the-demos" target="_blank">MediaStream flag</a></li>
-<li>A <a href="http://dev.opera.com/articles/view/labs-more-fun-using-the-web-with-getusermedia-and-native-pages/" target="_blank">special Opera Labs build</a></li>
+<li>A <a href="http://dev.opera.com/articles/view/getusermedia-access-camera-privacy-ui/" target="_blank">special Opera Labs build</a></li>
 </ul>
 </li>
 <li>Other:
