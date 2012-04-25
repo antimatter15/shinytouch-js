@@ -132,16 +132,16 @@ var calibration_options = {
 	current_algorithm : null
 }
 function calculateQuad() {
-    quad.left = Math.min(quad.tl[0],quad.bl[0]);
-    quad.right = Math.max(quad.tr[0],quad.br[0]);
-    quad.top = Math.min(quad.tl[1],quad.tr[1]);
-    quad.bottom = Math.max(quad.bl[1],quad.br[1]);
+	quad.left = Math.min(quad.tl[0],quad.bl[0]);
+	quad.right = Math.max(quad.tr[0],quad.br[0]);
+	quad.top = Math.min(quad.tl[1],quad.tr[1]);
+	quad.bottom = Math.max(quad.bl[1],quad.br[1]);
 	
 	quad.width = quad.right-quad.left;
 	quad.height = quad.bottom - quad.top;
     
-    quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width;    //rate of top change
-    quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of down change
+	quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width;    //rate of top change
+	quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of down change
 }
 function calibrate(algorithm) {
 	var win = window.open("calibrate3.html","calibrate","toolbar=no");
