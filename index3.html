@@ -91,14 +91,19 @@ function init() {
 }
 function update() {
 	var ctx = output.getContext("2d"), i;
-	ctx.drawImage(video,0,0,320,240);
+	ctx.drawImage(video,0,0,output.width,output.height);
 	ctx.beginPath();
+	
+	const RECT_SIZE = 10;
 	
 	var corners = ["tl", "tr", "br", "bl"];
 	corners.forEach(function(el,i) {
 		var curel = quad[el];
 		if (curel) {
-			ctx.strokeRect(curel[0]-5,curel[1]-5,10,10);
+			ctx.strokeRect(curel[0] - RECT_SIZE/2,
+			               curel[1] - RECT_SIZE/2,
+						   RECT_SIZE,
+						   RECT_SIZE);
 			var nextel = quad[ corners[ (i+1)%4 ] ];
 			if (nextel) {
 				ctx.moveTo(curel[0],curel[1]);
@@ -150,6 +155,43 @@ function calibrate(algorithm) {
 	}
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
+}
+function imageLog(imageData,title) {
+	var w = imageData.width, h = imageData.height;
+	
+	var canvas = document.createElement("canvas"),
+	    ctx = canvas.getContext("2d");
+	canvas.width = imageData.width;
+	canvas.height = imageData.height;
+	
+	ctx.putImageData(imageData,0,0);
+	
+	/*
+	var data = canvas.toDataURL("image/png");
+	
+	var image = new Image();
+	image.src = data;
+	$("imageLog").appendChild(image);
+	*/
+	$("imageLog").appendChild(canvas);
+}
+function captureImageSequence(video,INTERVAL_MIN,INTERVAL_MAX,CAPTURE_ATTEMPTS,oncomplete) {
+	
+	var pixelDatas = [];
+	for (i=0;i<CAPTURE_ATTEMPTS;i++) {
+		setTimeout(function(){
+			var tempCanvas = document.createElement("canvas"),
+				tempCtx = tempCanvas.getContext("2d");
+			
+			tempCanvas.width = video.videoWidth, tempCanvas.height = video.videoHeight;
+			tempCtx.drawImage(video,0,0);
+			
+			pixelDatas.push(tempCtx.getImageData(0,0,tempCanvas.width,tempCanvas.height));
+		}, i * INTERVAL_MAX + randInt(INTERVAL_MIN,INTERVAL_MAX));
+	}
+	setTimeout(function() {
+		oncomplete(pixelDatas);
+	},INTERVAL_MAX * CAPTURE_ATTEMPTS);
 }
 </script>
 <style>
@@ -215,6 +257,7 @@ At the time of writing, there are only a couple of places where the getUserMedia
 <ul>
 <li>Tested:
 <ul>
+<li>Google Chrome 21+</li>
 <li>Google Chrome 18+ via the <a href="http://www.webrtc.org/running-the-demos" target="_blank">MediaStream flag</a></li>
 <li>A <a href="http://dev.opera.com/articles/view/getusermedia-access-camera-privacy-ui/" target="_blank">special Opera Labs build</a></li>
 </ul>
@@ -223,7 +266,6 @@ At the time of writing, there are only a couple of places where the getUserMedia
 <ul>
 <li>Microsoft's <a href="http://html5labs.interoperabilitybridges.com/prototypes/media-capture-api-(2nd-updated)/media-capture-api-(2nd-update)/info" target="_blank">
     prototype implementation</a></li>
-<li>A modified <a href="https://labs.ericsson.com/apis/web-real-time-communication/" target="_blank">WebKit build</a> from Ericsson Labs</li>
 </ul>
 </li>
 </ul>
@@ -246,8 +288,11 @@ See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> fo
 </td><td>
 <canvas id="draw" width="160" height="120"></canvas>
 </td>
+</tr>
 </table>
 
+<div id="imageLog"></div>
+</section>
 <select id="calibration-type">
 <option value="manual">Manual</option>
 <option value="idk">idk</option>
