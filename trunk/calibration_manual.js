@@ -66,25 +66,28 @@ calibration_algorithms["manual"] = function(win) {
 		} else { // if 3
 			quad["bl"] = [x, y];
 			// done
-			loc.innerHTML = "nothing";
-			cont.appendChild(document.createElement("br"));
-			
-			// cancel update thing
-			// or not, who cares?
-			// yes i care
-			// update_sequences.splice(update_sequences.indexOf(update),1);
-			
-			var b = document.createElement("b");
-			b.appendChild(document.createTextNode("You can\/should close the window now."));
-			cont.appendChild(b);
-			
-			canvas.onclick = null;
-			//win.close();
-			
-			calculateQuad();
+			stop();
 		}
 		
 		// ctx.strokeRect(x-10, y-10, 20, 20);
 		
+	}
+	function stop() {
+		loc.innerHTML = "nothing";
+		cont.appendChild(document.createElement("br"));
+		
+		// cancel update thing
+		// or not, who cares?
+		// yes i care
+		update_sequences.splice(update_sequences.indexOf(update),1);
+		
+		var b = document.createElement("b");
+		b.appendChild(document.createTextNode("You can\/should close the window now."));
+		cont.appendChild(b);
+		
+		canvas.onclick = null;
+		//win.close();
+		
+		calculateQuad();
 	}
 }
