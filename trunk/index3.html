@@ -150,9 +150,16 @@ function calculateQuad() {
 }
 function calibrate(algorithm) {
 	var win = window.open("calibrate3.html","calibrate","toolbar=no");
-	win.onload = function() {
-		calibration_algorithms[algorithm](win);
-	}
+	setTimeout(function() {
+		if (win.document && win.document.readyState == "complete") {
+			calibration_algorithms[algorithm](win);
+		} else {
+			win.onload = function() {
+				calibration_algorithms[algorithm](win);
+			}
+		}
+	},0);
+	
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
 }
@@ -258,8 +265,8 @@ At the time of writing, there are only a couple of places where the getUserMedia
 <li>Tested:
 <ul>
 <li>Google Chrome 21+</li>
-<li>Google Chrome 18+ via the <a href="http://www.webrtc.org/running-the-demos" target="_blank">MediaStream flag</a></li>
-<li>A <a href="http://dev.opera.com/articles/view/getusermedia-access-camera-privacy-ui/" target="_blank">special Opera Labs build</a></li>
+<li>Google Chrome 18+ via the MediaStream option in chrome://flags</li>
+<li>Opera 12+</li>
 </ul>
 </li>
 <li>Other:
