@@ -7,10 +7,10 @@
 <script src="calibration_manual.js"></script>
 <script src="calibration_idk.js"></script>
 <script type="text/javascript">
-calibration_algorithms || (calibration_algorithms = []);
+calibration_algorithms || (calibration_algorithms = {});
 update_sequences || (update_sequences = []);
 
-function $(){return this.document.getElementById(arguments[0]);}
+function $(id){return this.document.getElementById(id);}
 var video, output, draw;
 window.onload = function() {
 	video = $("input");
@@ -18,18 +18,6 @@ window.onload = function() {
 	draw = $("draw");
 	
 	output.getContext("2d").strokeStyle="#0ff";
-	
-	
-	document.getElementsByClassName("cover")[0].addEventListener("click",function(e) {
-		init();
-	}, false);
-	$("info").addEventListener("click",function(e) {
-		// ...both?
-		if (e.stopPropagation) e.stopPropagation();
-		if (e.preventDefault) e.preventDefault();
-		
-		return false;
-	}, true);
 		
 	support();
 } 
@@ -85,7 +73,7 @@ function init() {
 		
 		update();
 	},function(e){
-		alert("Error: "+e.name+" "+e.message);
+		alert("Error! Did you deny permissions?");
 		console.error(e);
 	});
 }
@@ -124,41 +112,44 @@ var quad = {
 	br: null,
 	bl: null,
 	
-	left:null,
-	right:null,
-	top:null,
-	buttom:null,
-	toprate:null,
-	bottomrate:null
+	left  : null,
+	right : null,
+	top   : null,
+	bottom: null,
+	
+	toprate   : null,
+	bottomrate: null
 };
 var calibration_options = {
 	screen_width: null,
 	screen_height: null,
-	current_algorithm : null
+	current_algorithm: null
 }
 function calculateQuad() {
-	quad.left = Math.min(quad.tl[0],quad.bl[0]);
-	quad.right = Math.max(quad.tr[0],quad.br[0]);
-	quad.top = Math.min(quad.tl[1],quad.tr[1]);
+	quad.left   = Math.min(quad.tl[0],quad.bl[0]);
+	quad.right  = Math.max(quad.tr[0],quad.br[0]);
+	quad.top    = Math.min(quad.tl[1],quad.tr[1]);
 	quad.bottom = Math.max(quad.bl[1],quad.br[1]);
 	
-	quad.width = quad.right-quad.left;
+	quad.width  = quad.right  - quad.left;
 	quad.height = quad.bottom - quad.top;
     
-	quad.toprate = (quad.tl[1]-quad.tr[1])/quad.width;    //rate of top change
-	quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of down change
+	quad.toprate    = (quad.tl[1]-quad.tr[1])/quad.width  //rate of top change
+	quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of bottom change
 }
 function calibrate(algorithm) {
+	/*
 	var win = window.open("calibrate3.html","calibrate","toolbar=no");
+	win.onload = function() {
+		calibration_algorithms[algorithm](win);
+	};
 	setTimeout(function() {
 		if (win.document && win.document.readyState == "complete") {
-			calibration_algorithms[algorithm](win);
-		} else {
-			win.onload = function() {
-				calibration_algorithms[algorithm](win);
-			}
+			win.onload();
 		}
 	},0);
+	*/
+	var win = window.open("calibrate3.html?" + algorithm,"calibrate","toolbar=no,width=700,height=500");
 	
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
@@ -173,32 +164,36 @@ function imageLog(imageData,title) {
 	
 	ctx.putImageData(imageData,0,0);
 	
-	/*
+	
 	var data = canvas.toDataURL("image/png");
 	
 	var image = new Image();
 	image.src = data;
+	image.title = title;
 	$("imageLog").appendChild(image);
-	*/
-	$("imageLog").appendChild(canvas);
+	
+	//$("imageLog").appendChild(canvas);
 }
-function captureImageSequence(video,INTERVAL_MIN,INTERVAL_MAX,CAPTURE_ATTEMPTS,oncomplete) {
+function captureImageSequence(video,INTERVAL,CAPTURE_ATTEMPTS,oncaptureeach,oncomplete) {
 	
 	var pixelDatas = [];
 	for (i=0;i<CAPTURE_ATTEMPTS;i++) {
-		setTimeout(function(){
+		setTimeout((function(){
 			var tempCanvas = document.createElement("canvas"),
 				tempCtx = tempCanvas.getContext("2d");
 			
 			tempCanvas.width = video.videoWidth, tempCanvas.height = video.videoHeight;
 			tempCtx.drawImage(video,0,0);
 			
-			pixelDatas.push(tempCtx.getImageData(0,0,tempCanvas.width,tempCanvas.height));
-		}, i * INTERVAL_MAX + randInt(INTERVAL_MIN,INTERVAL_MAX));
+			var capturedImage = tempCtx.getImageData(0,0,tempCanvas.width,tempCanvas.height);
+			
+			pixelDatas.push(capturedImage);
+			oncaptureeach(capturedImage,i);
+		}).bind(i), i * INTERVAL);
 	}
 	setTimeout(function() {
 		oncomplete(pixelDatas);
-	},INTERVAL_MAX * CAPTURE_ATTEMPTS);
+	},INTERVAL * CAPTURE_ATTEMPTS);
 }
 </script>
 <style>
@@ -237,7 +232,6 @@ body {
 	height:100%;
 	z-index:9;
 	background-color:rgba(200,200,200,0.8);
-	cursor:pointer;
 }
 </style>
 </head>
@@ -284,14 +278,19 @@ See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> fo
 </section>
 </div>
 <section id="container">
+
+<video autoplay id="input" style="display:none"></video>
 <!-- I'm using TABLES? lol -->
 <table style="border-width:1px;border-spacing:0px">
-<tr><th>Camera view</th><th>Output</th><th>Draw view</th></tr>
+<tr><!--<th>Camera view</th>--><th>Output</th><th>Draw view</th></tr>
 <tr>
+<!--
 <td>
-<video autoplay id="input"></video>
-</td><td>
-<canvas id="output" width="320" height="240"></canvas>
+<video autoplay id="input" width="320" height="240"></video>
+</td>
+-->
+<td>
+<canvas id="output" width="480" height="360"></canvas>
 </td><td>
 <canvas id="draw" width="160" height="120"></canvas>
 </td>

@@ -96,52 +96,48 @@ document.addEventListener("webkitfullscreenchange", function(e) {
  * by me
  * https://gist.github.com/2295355
  */
-if (!window.Uint8ClampedArray && Uint8Array &&
-    (function(){
-    	try { return document.createElement("canvas").getContext("2d").getImageData; }
-    	catch(e) { return false; } 
-    }())) {
+if (!window.Uint8ClampedArray && window.Uint8Array && window.ImageData) {
 window.Uint8ClampedArray = function(input,arg1,arg2) {
-	if (!(this instanceof Uint8ClampedArray)) {
-		throw new TypeError("DOM object constructor cannot be called as a function.");
-	}
 	var len = 0;
-	if (input.length) { //an array, yay
+	if (typeof input == "undefined") { }
+	else if (!isNaN(parseInt(input.length))) { //an array, yay
 		len = input.length;
-	} else if (input.constructor == ArrayBuffer) {
+	}
+	else if (input instanceof ArrayBuffer) {
 		return new Uint8ClampedArray(new Uint8Array(input,arg1,arg2));
-	} else {
-		len = Number(input);
-		input = null;
 	}
-
-	if (len != Math.abs(len) << 0) { // also catches Number() parse fails
-		throw new RangeError();
+	else {
+		len = parseInt(input);
+		if (isNaN(len) || len < 0) {
+			throw new RangeError();
+		}
+		input = undefined;
 	}
-	len = Math.ceil(len / 4) * 4; // round up to the nearest mult of 4
+	len = Math.ceil(len / 4);
 
-	var canvas = document.createElement("canvas");
-	canvas.width = len / 4; // the CanvasPixelArray will have dims 4 * width * height
-	canvas.height = 1;
+	if (len == 0) len = 1;
 
-	var array = canvas.getContext("2d").getImageData(0,0,len/4,1).data;
+	var array = document.createElement("canvas")
+	              .getContext("2d")
+	              .createImageData(len, 1)
+	              .data;
 
-	if (input) {
+	if (typeof input != "undefined") {
 		for (var i=0;i<input.length;i++) {
 			array[i] = input[i];
 		}
 	}
-	if (Object.defineProperty) {
+	try {
 		Object.defineProperty(array,"buffer",{
 			get: function() {
 				return new Uint8Array(this).buffer;
 			}
 		});
-	} else if (Object.prototype.__defineGetter__) {
+	} catch(e) { try {
 		array.__defineGetter__("buffer",function() {
 			return new Uint8Array(this).buffer;
 		});
-	}
+	} catch(e) {} }
 	return array;
 }
 }

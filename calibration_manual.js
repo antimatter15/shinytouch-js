@@ -1,4 +1,4 @@
-window.calibration_algorithms || (calibration_algorithms = []);
+window.calibration_algorithms || (calibration_algorithms = {});
 window.update_sequences || (update_sequences = []);
 
 calibration_algorithms["manual"] = function(win) {
@@ -22,7 +22,7 @@ calibration_algorithms["manual"] = function(win) {
 	
 	win.$ = function(d){return win.document.getElementById(d)};
 	
-	var cont = win.$("container");
+	var cont = win.$("message");
 	cont.innerHTML = "Clicky clicky the <b id=\"location\"></b> corner of your monitor";
 	var loc = win.$("location");
 	var canvas = document.createElement("canvas");
@@ -56,7 +56,8 @@ calibration_algorithms["manual"] = function(win) {
 		x -= canvas.offsetLeft;
 		y -= canvas.offsetTop;
 		
-		x /= 2, y /= 2; // make 320x240
+		var scale = output.width / canvas.width;
+		x *= scale, y *= scale; // make sure coordinates scale
 		
 		if (pos < locs.length - 1) {
 			// if              2          1    0
@@ -68,8 +69,6 @@ calibration_algorithms["manual"] = function(win) {
 			// done
 			stop();
 		}
-		
-		// ctx.strokeRect(x-10, y-10, 20, 20);
 		
 	}
 	function stop() {
