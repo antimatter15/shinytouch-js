@@ -14,13 +14,17 @@ body {
 }
 #message {
 	margin: 50px 15px; /* fif(ty|teen) */
-	display: inline-block;
-	font-size:150%;
+	font-size: 24px;
+	color: rgba(128,128,128,0.9);
+	text-align: center;
+	box-sizing: border-box;
+	position: relative;
+	z-index: 5;
 }
 </style>
 </head>
 <body>
-<div id="message">If you're seeing this for more than a couple of seconds, something's wrong.</div>
+<div id="message">If you actually can read this entire sentence, something's wrong with the program.</div>
 
 <script>
 window.onerror = function(e){ window.opener.console.error(e) }

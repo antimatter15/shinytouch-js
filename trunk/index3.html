@@ -10,6 +10,16 @@
 calibration_algorithms || (calibration_algorithms = {});
 update_sequences || (update_sequences = []);
 
+update_sequences.remove = function(func) {
+	var pos = update_sequences.indexOf(func);
+	
+	if (pos < 0) {
+		throw new ReferenceError("function not found");
+	}
+	
+	update_sequences.splice(pos,1);
+}
+
 function $(id){return this.document.getElementById(id);}
 var video, output, draw;
 window.onload = function() {
@@ -149,12 +159,12 @@ function calibrate(algorithm) {
 		}
 	},0);
 	*/
-	var win = window.open("calibrate3.html?" + algorithm,"calibrate","toolbar=no,width=700,height=500");
+	var win = window.open("calibrate3.html?" + algorithm,"calibrate","toolbar=no,width=800,height=600");
 	
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
 }
-function imageLog(imageData,title) {
+function imageLog(imageData,title,point) {
 	var w = imageData.width, h = imageData.height;
 	
 	var canvas = document.createElement("canvas"),
@@ -164,6 +174,14 @@ function imageLog(imageData,title) {
 	
 	ctx.putImageData(imageData,0,0);
 	
+	if (point) {
+		const RECT_SIZE = 10;
+		ctx.strokeStyle = "#0ff";
+		ctx.strokeRect(point[0] - RECT_SIZE/2,
+               point[1] - RECT_SIZE/2,
+			   RECT_SIZE,
+			   RECT_SIZE);
+	}	
 	
 	var data = canvas.toDataURL("image/png");
 	
@@ -177,19 +195,22 @@ function imageLog(imageData,title) {
 function captureImageSequence(video,INTERVAL,CAPTURE_ATTEMPTS,oncaptureeach,oncomplete) {
 	
 	var pixelDatas = [];
-	for (i=0;i<CAPTURE_ATTEMPTS;i++) {
-		setTimeout((function(){
-			var tempCanvas = document.createElement("canvas"),
-				tempCtx = tempCanvas.getContext("2d");
+	for (var i=0;i<CAPTURE_ATTEMPTS;i++) {
+		(function(_i) {
+			setTimeout(function(){
+				var tempCanvas = document.createElement("canvas"),
+					tempCtx = tempCanvas.getContext("2d");
 			
-			tempCanvas.width = video.videoWidth, tempCanvas.height = video.videoHeight;
-			tempCtx.drawImage(video,0,0);
+				tempCanvas.width = video.videoWidth, tempCanvas.height = video.videoHeight;
+				tempCtx.drawImage(video,0,0);
 			
-			var capturedImage = tempCtx.getImageData(0,0,tempCanvas.width,tempCanvas.height);
+				var capturedImage = tempCtx.getImageData(0,0,tempCanvas.width,tempCanvas.height);
 			
-			pixelDatas.push(capturedImage);
-			oncaptureeach(capturedImage,i);
-		}).bind(i), i * INTERVAL);
+				pixelDatas.push(capturedImage);
+			
+				setTimeout(oncaptureeach.bind(null,capturedImage,_i),0);
+			}, _i * INTERVAL);
+		}(i));
 	}
 	setTimeout(function() {
 		oncomplete(pixelDatas);
@@ -253,24 +274,10 @@ Hi there! This is a non-working in-development prototype of
 <span id="support-status">Please waits...</span>
 <button value="Close" onclick="init()">Close</button>
 <p>
-At the time of writing, there are only a couple of places where the getUserMedia API is available:
-<br />
-<ul>
-<li>Tested:
-<ul>
-<li>Google Chrome 21+</li>
-<li>Google Chrome 18+ via the MediaStream option in chrome://flags</li>
-<li>Opera 12+</li>
-</ul>
-</li>
-<li>Other:
-<ul>
-<li>Microsoft's <a href="http://html5labs.interoperabilitybridges.com/prototypes/media-capture-api-(2nd-updated)/media-capture-api-(2nd-update)/info" target="_blank">
-    prototype implementation</a></li>
-</ul>
-</li>
-</ul>
-See <a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> for a list of stable browsers that support it.
+At the time of writing, there are only a couple of places where the getUserMedia API is available: check 
+<a href="http://caniuse.com/#feat=stream" target="_blank">caniuse.com</a> for a list of stable browsers that support it.
+However, it has been tested using Google Chrome 21+ and Opera 12+.
+
 </p>
 <p>
 <b>If you suffer from epilepsy or have experienced seizures, please be aware that the automatic calibration process
