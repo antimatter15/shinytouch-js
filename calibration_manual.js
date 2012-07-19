@@ -2,7 +2,6 @@ window.calibration_algorithms || (calibration_algorithms = {});
 window.update_sequences || (update_sequences = []);
 
 calibration_algorithms["manual"] = function(win) {
-	// helper functions
 	
 	function update() {
 		// uhh we have ctx in this scope right?
@@ -30,6 +29,7 @@ calibration_algorithms["manual"] = function(win) {
 	canvas.width = 640; canvas.height = 480;
 	
 	canvas.style.border = "1px solid black";
+	canvas.style.marginTop = "20px";
 	cont.appendChild(document.createElement("br"));
 	cont.appendChild(canvas);
 	
@@ -45,16 +45,9 @@ calibration_algorithms["manual"] = function(win) {
 	var pos = 0;
 	
 	canvas.onclick = function(e) {
-		var x,y;
-		if (e.pageX && e.pageY) { 
-			x = e.pageX;
-			y = e.pageY;
-		} else { 
-			x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
-			y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
-		}
-		x -= canvas.offsetLeft;
-		y -= canvas.offsetTop;
+		// woah it's magical built in goodness
+		var x = e.offsetX,
+		    y = e.offsetY;
 		
 		var scale = output.width / canvas.width;
 		x *= scale, y *= scale; // make sure coordinates scale
@@ -78,7 +71,7 @@ calibration_algorithms["manual"] = function(win) {
 		// cancel update thing
 		// or not, who cares?
 		// yes i care
-		update_sequences.splice(update_sequences.indexOf(update),1);
+		update_sequences.remove(update);
 		
 		//var b = document.createElement("b");
 		//b.appendChild(document.createTextNode("You can\/should close the window now."));
