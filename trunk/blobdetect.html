@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="UTF-8" />
+<title>Blob Detect Test</title>
+
+Upload files: 
+<input type="file" onchange="loadToCanvas(this.files[0])" />
+<br /><br />
+<canvas id="canvas"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas"),
+    ctx = canvas.getContext("2d");
+
+function loadToCanvas(file) {
+  var fr = new FileReader();
+  fr.onerror = function() {
+    alert("Error");
+  }
+  fr.onload = function(e) {
+    var img = new Image();
+    img.src = e.target.result;
+  }
+  fr.readAsDataURL(file);
+}
