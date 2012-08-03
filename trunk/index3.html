@@ -1,4 +1,4 @@
-﻿<!doctype html>
+ <!doctype html>
 <head>
 <meta charset="UTf-8" />
 <title>ShinyTouch/JS</title>
@@ -7,6 +7,7 @@
 <script src="calibration_manual.js"></script>
 <script src="calibration_idk.js"></script>
 <script type="text/javascript">
+tracking_algorithms || (tracking_algorithms = {});
 calibration_algorithms || (calibration_algorithms = {});
 update_sequences || (update_sequences = []);
 
@@ -135,6 +136,10 @@ var calibration_options = {
 	screen_height: null,
 	current_algorithm: null
 }
+var tracking_options = {
+  blank_screen: null,
+  current_algorithm: null
+}
 function calculateQuad() {
 	quad.left   = Math.min(quad.tl[0],quad.bl[0]);
 	quad.right  = Math.max(quad.tr[0],quad.br[0]);
@@ -163,6 +168,9 @@ function calibrate(algorithm) {
 	
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
+}
+function track(algorithm) {
+  tracking_options.current_algorithm = algorithm;
 }
 function imageLog(imageData,title,point) {
 	var w = imageData.width, h = imageData.height;
@@ -285,7 +293,6 @@ However, it has been tested using Google Chrome 21+ and Opera 12+.
 </section>
 </div>
 <section id="container">
-
 <video autoplay id="input" style="display:none"></video>
 <!-- I'm using TABLES? lol -->
 <table style="border-width:1px;border-spacing:0px">
@@ -306,11 +313,19 @@ However, it has been tested using Google Chrome 21+ and Opera 12+.
 
 <div id="imageLog"></div>
 </section>
+
+<section>
 <select id="calibration-type">
 <option value="manual">Manual</option>
 <option value="idk">idk</option>
 </select>
 <button onclick="calibrate($('calibration-type').value)">Begin calibration</button>
 
+<br /><br />
+
+<select id="tracking-type">
+<option value="1">one</option>
+</select>
+<button onclick="track($('tracking-type').value">Begin detection</button>
 </section>
 </body>
