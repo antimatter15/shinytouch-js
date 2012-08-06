@@ -18,7 +18,31 @@ function loadToCanvas(file) {
   }
   fr.onload = function(e) {
     var img = new Image();
+    img.onload = function() {
+      blobDetect();
+    }
     img.src = e.target.result;
   }
   fr.readAsDataURL(file);
 }
+function blobDetect() {
+  var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  var cpx = imageData.data,
+      width = imageData.width,
+      height = imageData.height;
+  
+  for (var x=0,y=0; y < width; (x < width - 1 ? x++ : x=0, y++)) {
+    if (getpix(imageData,x,y) == [255, 255, 255]) {
+      var coords = floodFillBounds(imageData,x,y,[255,0,0]);
+      // yay bounds box what do we do with it?
+    }
+  }
+}
+function floodFillBounds(imageData,x,y,color) {
+  
+}
+function getpix(imageData,x,y) {
+  var pos = imageData.width * y + x;
+  return [].slice.call(imageData.data,pos,pos+4);
+}
+</script>
