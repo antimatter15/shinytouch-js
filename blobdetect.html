@@ -101,16 +101,11 @@ function blobDetect() {
 
 	ctx.strokeStyle = "#0000ff";
 	boundsBoxes.forEach(function (box) {
-		ctx.strokeRect(box[0], box[2], box[1] - box[0], box[3] - box[2]);
+		ctx.strokeRect(box[0], box[2], box[1]-box[0], box[3]-box[2]);
 	});
 
 	console.log(boundsBoxes);
 }
-
-var surroundingPixels = [[0,1], [1,0], [0,-1], [-1,0]];
-
-// about 175 ms slower 
-// var surroundingPixels = [[0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0], [-1,1]];
 
 function floodFillBounds(imageData, x, y, color) { // color is [r, g, b]
 	var rangeX = [x, x], rangeY = [y, y];
@@ -125,8 +120,12 @@ function floodFillBounds(imageData, x, y, color) { // color is [r, g, b]
 	while (edge.length > 0) {
 		var newedge = [];
 		edge.forEach(function (coords) {
-			surroundingPixels.forEach(function (pixelDiff) {
-				var s = coords[0] + pixelDiff[0], t = coords[1] + pixelDiff[1];
+			[	[coords[0], coords[1] + 1],
+				[coords[0], coords[1] - 1],
+				[coords[0] + 1, coords[1]],
+				[coords[0] - 1, coords[1]]
+			].forEach(function (newcoords) {
+				var s = newcoords[0], t = newcoords[1];
 
 				if (withinImage(imageData, s, t) && arrayEquals(getpix(imageData, s, t), replaceColor)) {
 					// arrays pass by reference, no need to assign return.
