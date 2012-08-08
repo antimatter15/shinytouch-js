@@ -19,30 +19,119 @@ function loadToCanvas(file) {
   fr.onload = function(e) {
     var img = new Image();
     img.onload = function() {
+      canvas.width = img.width, canvas.height = img.height;
+      ctx.drawImage(img,0,0);
+
+      console.time("test");
       blobDetect();
+      console.timeEnd("test");
     }
     img.src = e.target.result;
   }
   fr.readAsDataURL(file);
 }
-function blobDetect() {
-  var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  var cpx = imageData.data,
-      width = imageData.width,
-      height = imageData.height;
-  
-  for (var x=0,y=0; y < width; (x < width - 1 ? x++ : x=0, y++)) {
-    if (getpix(imageData,x,y) == [255, 255, 255]) {
-      var coords = floodFillBounds(imageData,x,y,[255,0,0]);
-      // yay bounds box what do we do with it?
+
+// helper functions
+
+function withinImage(imageData, x, y) {
+  return (x > 0 && x < imageData.width)
+      && (y > 0 && y < imageData.height);
+}
+function arrayEquals(arr1, arr2) {
+  var len = arr1.length;
+
+  if (arr2.length != len) throw new RangeError();
+
+  for (var i=0;i<len;i++) {
+    if (arr1[i] != arr2[i]) {
+      return false;
     }
   }
+  return true;
 }
-function floodFillBounds(imageData,x,y,color) {
+function colorTotal(color, threshhold) {
+  return (color[0] + color[1] + color[2] >= threshhold * 3);
+}
+function updateRange(range,value) {
+  if (value < range[0]) {
+    range[0] = value;
+  } else if (value > range[1]) {
+    range[1] = value;
+  }
+  return range;
+}
+
+
+// algorithm based on https://github.com/antimatter15/shinytouch/blob/master/engines/blobdetect.py
+
+
+function blobDetect() {
+  var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  var width = imageData.width,
+      height = imageData.height;
+  var boundsBoxes = [];
+  
+  for (var x=0,y=0; y < height; (x < width - 1 ? x++ : (x=0, y++))) {
+
+    if (colorTotal(getpix(imageData,x,y),200)) {
+      var coords = floodFillBounds(imageData,x,y,[255,0,0]);
+      // yay bounds box what do we do with it?
+      boundsBoxes.push(coords);
+    }
+  }
+  ctx.putImageData(imageData,0,0);
+  
+  ctx.strokeStyle = "#0000ff";
+  boundsBoxes.forEach(function(box) {
+    ctx.strokeRect(box[0],box[2],box[1]-box[0],box[3]-box[2]);
+  });
+  
+  console.log(boundsBoxes);
+}
+
+var surroundingPixels = [[0,1],[1,0],[0,-1],[-1,0]];
+
+// about 175 ms slower 
+// var surroundingPixels = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];
+
+function floodFillBounds(imageData,x,y,color) { // color is [r, g, b]
+  var rangeX = [x,x], rangeY = [y,y];
+  
+  if (!withinImage(imageData,x,y)) throw new RangeError();
+  
+  var replaceColor = getpix(imageData,x,y); // color to replace
+  
+  var edge = [[x,y]];
+  setpix(imageData, x, y, color);
+  
+  while (edge.length > 0) {
+    var newedge = [];
+    edge.forEach(function(coords) {
+      surroundingPixels.forEach(function(pixelDiff) {
+        var s = coords[0] + pixelDiff[0], t = coords[1] + pixelDiff[1];
+
+        if (withinImage(imageData,s,t) && arrayEquals(getpix(imageData,s,t), replaceColor)) 
+          // arrays pass by reference, no need to assign return.
+          updateRange(rangeX,s);
+          updateRange(rangeY,t);
+
+          setpix(imageData, s, t, color);
+          newedge.push([s,t]);
+        }
+      });
+    });
+    edge = newedge;
+  }
+  return rangeX.concat(rangeY);
   
 }
 function getpix(imageData,x,y) {
-  var pos = imageData.width * y + x;
-  return [].slice.call(imageData.data,pos,pos+4);
+  var pos = (imageData.width * y + x) * 4;
+  return [].slice.call(imageData.data,pos,pos+3);
+}
+function setpix(imageData,x,y,value) {
+  var pos = (imageData.width * y + x) * 4;
+  [].splice.apply(imageData.data,[pos, 3].concat(value));
+  return imageData;
 }
 </script>
