@@ -137,8 +137,8 @@ var calibration_options = {
 	current_algorithm: null
 }
 var tracking_options = {
-  blank_screen: null,
-  current_algorithm: null
+	blank_screen: null,
+	current_algorithm: null
 }
 function calculateQuad() {
 	quad.left   = Math.min(quad.tl[0],quad.bl[0]);
@@ -153,24 +153,14 @@ function calculateQuad() {
 	quad.bottomrate = (quad.bl[1]-quad.br[1])/quad.width; //rate of bottom change
 }
 function calibrate(algorithm) {
-	/*
-	var win = window.open("calibrate3.html","calibrate","toolbar=no");
-	win.onload = function() {
-		calibration_algorithms[algorithm](win);
-	};
-	setTimeout(function() {
-		if (win.document && win.document.readyState == "complete") {
-			win.onload();
-		}
-	},0);
-	*/
+
 	var win = window.open("calibrate3.html?" + algorithm,"calibrate","toolbar=no,width=800,height=600");
 	
 	// redundant but owell
 	calibration_options.current_algorithm = algorithm;
 }
 function track(algorithm) {
-  tracking_options.current_algorithm = algorithm;
+	tracking_options.current_algorithm = algorithm;
 }
 function imageLog(imageData,title,point) {
 	var w = imageData.width, h = imageData.height;
@@ -186,9 +176,9 @@ function imageLog(imageData,title,point) {
 		const RECT_SIZE = 10;
 		ctx.strokeStyle = "#0ff";
 		ctx.strokeRect(point[0] - RECT_SIZE/2,
-               point[1] - RECT_SIZE/2,
-			   RECT_SIZE,
-			   RECT_SIZE);
+        	               point[1] - RECT_SIZE/2,
+		               RECT_SIZE,
+		               RECT_SIZE);
 	}	
 	
 	var data = canvas.toDataURL("image/png");
@@ -261,6 +251,7 @@ body {
 	height:100%;
 	z-index:9;
 	background-color:rgba(200,200,200,0.8);
+	cursor:default;
 }
 </style>
 </head>
