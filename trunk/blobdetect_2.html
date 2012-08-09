@@ -39,6 +39,7 @@ function getpix(imageData, pos) {
 }
 
 function setpix(imageData, pos, value) {
+	if (value.length != 3) throw new RangeError();
 	pos = pos * 4;
 	[].splice.apply(imageData.data, [pos, 3].concat(value));
 	return imageData;
@@ -112,8 +113,8 @@ function floodFillBounds(imageData, pos, color) { // color is [r, g, b]
 	var width = imageData.width,
 	    height = imageData.height;
 	
-	var x = pos % height,
-	    y = (pos - x) / height;
+	var x = pos % width,
+	    y = (pos - x) / width;
 	
 	var rangeX = [x, x], rangeY = [y, y];
 
@@ -127,13 +128,18 @@ function floodFillBounds(imageData, pos, color) { // color is [r, g, b]
 	while (edge.length > 0) {
 		var newedge = [];
 		edge.forEach(function (pos) {
-			[	pos + width, // up
-				pos - width, // down
-				pos + 1,     // right
-				pos - 1	     // left
-			].forEach(function (newpos) {
+			var x = pos % width,
+			    newposes = [];
+			
+			if (x > 0)                      { newposes.push(pos - 1); }
+			if (x < width - 1)              { newposes.push(pos + 1); }
+			if (pos > width - 1)            { newposes.push(pos - width); }
+			if (pos < (height - 1) * width) { newposes.push(pos + width); }
+			
+			newposes.forEach(function (newpos) {
 
-				if (withinImage(imageData, newpos) && arrayEquals(getpix(imageData, newpos), replaceColor)) {
+				if ( // withinImage(imageData, newpos) && 
+				    arrayEquals(getpix(imageData, newpos), replaceColor)) {
 					var s = newpos % width,
 					    t = (newpos - s) / width;
 					
