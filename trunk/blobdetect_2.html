@@ -138,8 +138,7 @@ function floodFillBounds(imageData, pos, color) { // color is [r, g, b]
 			
 			newposes.forEach(function (newpos) {
 
-				if ( // withinImage(imageData, newpos) && 
-				    arrayEquals(getpix(imageData, newpos), replaceColor)) {
+				if (arrayEquals(getpix(imageData, newpos), replaceColor)) {
 					var s = newpos % width,
 					    t = (newpos - s) / width;
 					
