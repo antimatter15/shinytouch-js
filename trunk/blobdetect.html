@@ -39,6 +39,7 @@ function getpix(imageData, x, y) {
 }
 
 function setpix(imageData, x, y, value) {
+  if (value.length != 3) { throw new RangeError(); }
 	var pos = (imageData.width * y + x) * 4;
 	[].splice.apply(imageData.data, [pos, 3].concat(value));
 	return imageData;
