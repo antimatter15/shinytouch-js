@@ -1,7 +1,7 @@
 window.calibration_algorithms || (calibration_algorithms = {});
 window.update_sequences || (update_sequences = []);
 
-calibration_algorithms["idk"] = function(win) {
+calibration_algorithms["auto1"] = function(win) {
 		
 	var cameraDelay = null, averageImage = null;
 	
@@ -73,7 +73,7 @@ calibration_algorithms["idk"] = function(win) {
 	function calibration1() { // for calculating camera delay
 		
 		// constants		
-		const CAPTURE_INTERVAL = 200,
+		const CAPTURE_INTERVAL = 250,
 		      IMAGE_CAPTURES   = 6,
 		      OVER_DIFF_LIMIT  = 8;
 		
@@ -125,7 +125,7 @@ calibration_algorithms["idk"] = function(win) {
 				return;
 			}
 			
-			cameraDelay = CAPTURE_INTERVAL * (changeFrame - 1); // we change at capture interval 1
+			cameraDelay = CAPTURE_INTERVAL * (changeFrame); // we change at capture interval 1
 			
 			console.log("changeFrame:",changeFrame,"cameraDelay:",cameraDelay);
 			
@@ -171,11 +171,12 @@ calibration_algorithms["idk"] = function(win) {
 				function(imageData,i){ // after each capture
 			
 				var diffImage = imageDiff(imageData, averageImage);
-			
-				var center = findCenter(diffImage, COLOR_THRESHHOLD);
+				var diffImage2 = copyImageData(diffImage);
 				
-				imageLog(imageData,"",center);
+				var center = findCenter(diffImage2, COLOR_THRESHHOLD);
+				
 				imageLog(diffImage,"",center);
+				imageLog(diffImage2,"",center);
 			
 				centers[i] = center;
 				
@@ -189,11 +190,10 @@ calibration_algorithms["idk"] = function(win) {
 				    br = centers[2],
 				    bl = centers[3];
 				
+				var horiz = findLine(findMidpoint(tl,tr), findMidpoint(bl,br)),
+				    verti = findLine(findMidpoint(tl,bl), findMidpoint(tr,br));
 				
-				var diag1 = findLine(tl, br),
-				    diag2 = findLine(tr, bl);
-				
-				var center = findLineIntersect(diag1, diag2);
+				var center = findLineIntersect(horiz, verti);
 				
 				tl[0] += tl[0] - center[0];
 				tl[1] += tl[1] - center[1];
@@ -227,6 +227,12 @@ calibration_algorithms["idk"] = function(win) {
 	
 	
 	// ** HELPER FUNCTIONS ** 
+	
+	function copyImageData(data) {
+		var output = ctx.createImageData(data.width,data.height);
+		output.data.set(data.data);
+		return output;
+	}
 	
 	function fastabs(n){return ((n-1)>>31)?-n:n} // ints only...
 	
@@ -302,10 +308,11 @@ calibration_algorithms["idk"] = function(win) {
 		for (var i=0;i<len;i+=4) {
 			var lightness = rgbToHsl(arr[i],arr[i+1],arr[i+2])[2];
 			
-			if (lightness >= colorThreshhold) {
-				arr[i] = 255;
+			
+				arr[i] = 255 * lightness;
 				arr[i+1] = 0;
 				arr[i+2] = 0;
+			if (lightness >= colorThreshhold) {
 			
 				var curX = (i/4) % width,
 				    curY = ((i/4) - curX) / width;
@@ -329,6 +336,9 @@ calibration_algorithms["idk"] = function(win) {
 		var yIntercept = point1[1] - slope * point1[0];
 		
 		return [slope, yIntercept];
+	}
+	function findMidpoint(point1, point2) {
+		return [(point1[0] + point2[0]) / 2, (point1[1] + point2[1]) / 2];
 	}
 	function findLineIntersect(line1, line2) {
 		// line1 eq is y = m_1 * x + b_1 and line2 eq is y = m_2 * x + b_2
