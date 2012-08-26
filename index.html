@@ -5,7 +5,7 @@
 <script src="perspective.js" async></script>
 <script src="polyfills.js"></script>
 <script src="calibration_manual.js"></script>
-<script src="calibration_idk.js"></script>
+<script src="calibration_auto1.js"></script>
 <script type="text/javascript">
 tracking_algorithms || (tracking_algorithms = {});
 calibration_algorithms || (calibration_algorithms = {});
@@ -307,8 +307,8 @@ However, it has been tested using Google Chrome 21+ and Opera 12+.
 
 <section>
 <select id="calibration-type">
+<option value="auto1">automatic (1)</option>
 <option value="manual">Manual</option>
-<option value="idk">idk</option>
 </select>
 <button onclick="calibrate($('calibration-type').value)">Begin calibration</button>
 
