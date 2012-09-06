@@ -1,0 +1,153 @@
+<!doctype html>
+<meta charset="UTF-8" />
+<!-- 151,118,136 -->
+
+<input type="file" onchange="uploadFile(this.files[0])" />
+<br /><br />
+<canvas id="original" width="0" height="0" style="display:none"></canvas>
+<canvas id="paint" width="0" height="0"></canvas>
+<br />
+<div id="display"></div>
+<br />
+<div>
+Average color: <span id="avgColor"></span><br />
+Fill color: <input type="color" id="color" value="#00ff00" onchange="update()" />
+Max pixel offset: <input type="number" id="colorRange" max="255" min="0" value="10" onchange="update()" />
+</div>
+<br />
+<ul id="log"></li>
+<script>
+var canvas = document.getElementById("paint"),
+    ctx = canvas.getContext("2d"),
+	original = document.getElementById("original"),
+	originalCtx = original.getContext("2d");
+
+var display = document.getElementById("display"),
+    log = document.getElementById("log"),
+	avgColor = document.getElementById("avgColor");
+
+function uploadFile(file) {
+	var fr = new FileReader();
+	fr.onload = function() {
+		var img = new Image();
+		img.onload = function() {
+			canvas.width = original.width = img.width;
+			canvas.height = original.height = img.height;
+			
+			ctx.drawImage(img, 0, 0);
+			originalCtx.drawImage(img, 0, 0);
+			clear();
+		}
+		img.src = fr.result;
+	}
+	fr.readAsDataURL(file);
+}
+function sliceAmt(arr, pos, amt) {
+	return [].slice.call(arr, pos, pos + amt);
+}
+function getPix(imageData, x, y) {
+	return sliceAmt(imageData.data, 4 * (imageData.width * y + x), 3);
+}
+function getDivColor(rgb) {
+	var div = document.createElement("div");
+	div.style.width = div.style.height = "10px";
+	div.style.border = "1px solid black";
+	div.style.display = "inline-block";
+	div.style.backgroundColor = "rgb(" + rgb.join(",") + ")";
+	return div;
+}
+canvas.onmousemove = function(e) {
+	var x = e.offsetX, y = e.offsetY;
+	var width = canvas.width, height = canvas.height;
+	
+	var color = getPix(ctx.getImageData(0, 0, width, height), x, y);
+	
+	display.textContent = "pos: " + x + ", " + y + "; color: " + color.join(",") + " ";
+	display.appendChild(getDivColor(color));
+}
+var colors = [];
+canvas.onclick = function(e) {
+	var x = e.offsetX, y = e.offsetY;
+	var width = canvas.width, height = canvas.height;
+	
+	var color = getPix(originalCtx.getImageData(0, 0, width, height), x, y);
+	colors.push(color);
+	
+	var li = document.createElement("li");
+	li.textContent = "pos: " + x + ", " + y + "; color: " + color.join(",") + " ";
+	li.appendChild(getDivColor(color));
+	log.appendChild(li);
+	
+	update();
+}
+function update() {
+	
+	// update average color
+	var r = 0, g = 0, b = 0, len = colors.length;
+	colors.forEach(function(color) {
+		r += color[0];
+		g += color[1];
+		b += color[2];
+	});
+	r = Math.round(r / len), g = Math.round(g / len), b = Math.round(b / len);
+	
+	var color = [r, g, b];
+	
+	avgColor.textContent = color.join(",") + " ";
+	avgColor.appendChild(getDivColor(color));
+	
+	// yay filling pixels!
+	var width = original.width, height = original.height;
+	
+	var fillColor = hexToRgb(document.getElementById("color").value);
+	var fillRange = document.getElementById("colorRange").value;
+	
+	var imageData = originalCtx.getImageData(0, 0, width, height),
+	    pixelArr = imageData.data;
+	
+	for (var i=0, len=pixelArr.length; i<len; i+=4) {
+		var r1 = pixelArr[i],
+		    g1 = pixelArr[i+1],
+			b1 = pixelArr[i+2];
+		
+		if (closeEnough(r, r1, fillRange) && closeEnough(g, g1, fillRange) && closeEnough(b, b1, fillRange)) {
+			pixelArr[i] = fillColor[0];
+			pixelArr[i+1] = fillColor[1];
+			pixelArr[i+2] = fillColor[2];
+		}
+	}
+	ctx.putImageData(imageData, 0, 0);
+}
+function clear() {
+	colors = [];
+	log.innerHTML = "";
+	update();
+}
+function closeEnough(value1, value2, range) {
+	return Math.abs(value1 - value2) <= range;
+}
+function inRange(value, min, max) {
+	return min <= value && value <= max;
+}
+function hexToRgb(hex) {
+	hex = hex.toUpperCase().match(/[0-9A-F]*/gm).join("");
+	
+	if (hex.length == 3) {
+		var rgb = [parseInt(hex.charAt(0), 16),
+		           parseInt(hex.charAt(1), 16),
+		           parseInt(hex.charAt(2), 16)];
+		
+		// |= could be +=
+		rgb[0] |= rgb[0] << 4;
+		rgb[1] |= rgb[1] << 4;
+		rgb[2] |= rgb[2] << 4;
+		return rgb;
+	} else if (hex.length == 6) {
+		return [parseInt(hex.substring(0,2), 16),
+		        parseInt(hex.substring(2,4), 16),
+		        parseInt(hex.substring(4,6), 16)];
+	} else {
+		throw "Invalid RGB hex value";
+	}
+}
+</script>
